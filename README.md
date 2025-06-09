@@ -2,7 +2,7 @@
 
 This fork aims to fix some major flaws in the Telegram Analytics SDK:
 
-1. GDPR-compliance: desipte the claim that the SDK is compliant, its not because it sends Telegram User ID's, which meet the definition of Personally Identifying Information (PII). This fork hashes the ID's before sending them.
+1. GDPR-compliance: desipte the claim that the SDK is compliant, its not because it sends Telegram User's ID and usernames, which meet the definition of Personally Identifying Information (PII). This fork hashes the ID's before sending them.
 2. Trust: the SDK loads obfuscated javascript and WASM from their server. This fork includes the unobfuscated javascript in the codebase, and lets you configure where to load the WASM module from (including hosting it yourself so you can be sure its loading what you expect).
 3. Control: This fork allows you to configure which analytics to send to their backend
 
