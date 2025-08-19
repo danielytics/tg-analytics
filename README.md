@@ -1,27 +1,18 @@
-# Telegram Analytics
+# Telegram Analytics Fork
 
-## Overview
+This fork aims to fix some major flaws in the Telegram Analytics SDK:
 
-Telegram Analytics is a powerful SDK and API that enables your mini-application to become a rich source of actionable data. By tracking user activity within your app, it transforms that data into clear, useful analytics that can help you optimize your application and enhance user engagement.
+1. **GDPR-compliance**: desipte the claim that the SDK is compliant, its not because it sends Telegram User's ID and usernames, which meet the definition of Personally Identifying Information (PII). This fork hashes the ID's before sending them.
+2. **Trust**: the SDK loads obfuscated javascript and WASM from their server. This fork includes the unobfuscated javascript in the codebase, and lets you configure where to load the WASM module from (including hosting it yourself so you can be sure its loading what you expect).
+3. **Control**: This fork allows you to configure which analytics to send to their backend
 
-### ⚠️ **Disclaimer**
+Through these changes, this fork aims to be a safer and more trustworthy alternative, while still providing the analytics that the Telegram App Center requires for including apps in their catalog.
 
-> The library does not collect or store any private user data. It tracks app launches, TON Connect interactions, and GDPR-compliant events in an anonymous format. This data is used solely for to rank applications in the catalog based on their performance and Streaks.
+**Current status:**
 
-## 🖥️ Environment Support
-
-- Modern browsers
-- Server-side Rendering
-- [All known](https://telegram.org/apps) Telegram clients
-
-| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br>Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br>Safari | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="iOS" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br>iOS |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| \>= 79 | \>= 78 | \>= 73 | \>= 12.0 | \>= 12.0                                                                                                                                                                                                        |
-
-## Resources
-
-- **Example Mini App:** Typescript version — [dapp](https://github.com/Dimitreee/demo-dapp-with-analytics).
-- **Docs:** Access latest docs at [gitbook](https://docs.tganalytics.xyz/).
+1. All PII is hashed using SHA-256 (although in some cases truncated to fit into a javascript number)
+2. WASM is still being loaded from untrusted source
+3. Only configured events are collected -- however it does the check quite late, for now. An improved future version will avoid setting up listeners for data that won't be collected.
 
 ## Installation
 
@@ -30,56 +21,43 @@ Telegram Analytics is a powerful SDK and API that enables your mini-application 
 
 After token generation, you need to initialize the SDK.
 
-**There are two ways to initialize analytics: using CDN and the script tag, or using the NPM package.**
-
-### Using a CDN [![Example](https://img.shields.io/badge/Example-gray?logo=github)](https://github.com/sorawalker/demo-dapp-with-analytics/blob/patch-1/index.html)
-
-To add the Telegram Analytics SDK via CDN, include the following script`s in your HTML head:
-
-```html
-<script 
-    async 
-    src="https://tganalytics.xyz/index.js" 
-    onload="initAnalytics()" 
-    type="text/javascript"
-></script>
-```
-
-```html
-<script>
-    function initAnalytics() {
-      window.telegramAnalytics.init({
-        token: 'YOUR_TOKEN', // SDK Auth token received via @DataChief_bot
-        appName: 'ANALYTICS_IDENTIFIER', // The analytics identifier you entered in @DataChief_bot
-      });
-    }
-</script>
-```
-
-### Using the NPM package [![Example](https://img.shields.io/badge/Example-gray?logo=github)](https://github.com/sorawalker/demo-dapp-with-analytics/blob/master/src/main.tsx)
-
-You can install the package via npm:
-
-```sh
-npm install @telegram-apps/analytics
-```
-
-```sh
-yarn add @telegram-apps/analytics
-```
-
-```sh
-pnpm add @telegram-apps/analytics
-```
+It is recommended you build it from source including building and self-hosting the WASM module. [TODO: Add instructions]
 
 To ensure that all events are collected correctly, you must initialize the SDK before the application starts rendering. For example, in react applications, before calling the render() function
 
 ```javascript
-import telegramAnalytics from '@telegram-apps/analytics';
+import telegramAnalytics, { Events } from '@telegram-apps/analytics';
 
 telegramAnalytics.init({
     token: 'YOUR_TOKEN', // SDK Auth token received via @DataChief_bot
     appName: 'ANALYTICS_IDENTIFIER', // The analytics identifier you entered in @DataChief_bot
+    wasmUrl: '/analytics.wasm', // Where to load the WASM module from
+    events: [
+      // Remove any events you do not wish to send
+      Events.INIT,
+      Events.HIDE,
+      Events.CUSTOM_EVENT,
+      Events.WALLET_CONNECT_STARTED,
+      Events.WALLET_CONNECT_SUCCESS,
+      Events.WALLET_CONNECT_ERROR,
+      Events.CONNECTION_RESTORING_STARTED,
+      Events.CONNECTION_RESTORING_SUCCESS,
+      Events.CONNECTION_RESTORING_ERROR,
+      Events.TRANSACTION_SENT_FOR_SIGNATURE,
+      Events.TRANSACTION_SIGNED,
+      Events.TRANSACTION_SIGNING_FAILED,
+      Events.WALLET_DISCONNECT,
+      Events.ADDITIONAL_TASK_EVENT,
+      Events.PURCHASE_INIT,
+      Events.PURCHASE_SUCCESS,
+      Events.PURCHASE_FAILED,
+      Events.PURCHASE_CANCELLED,
+      Events.REFUND_ISSUED,
+      Events.SUBSCRIPTION_STARTED,
+      Events.SUBSCRIPTION_RENEWED,
+      Events.SUBSCRIPTION_CANCELLED,
+      Events.INVOICE_REGISTERED,
+    ]
 });
 ```
 
