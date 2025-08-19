@@ -3,15 +3,15 @@ import { WebAppUser } from '@twa-dev/types';
 import { App } from '../app';
 import { Errors, throwError } from '../errors';
 import { generateUUID } from '../utils/generateUUID';
-import { sha256number, sha256hex } from '../utils/crypto';
+import { sha256number } from '../utils/crypto';
 
 export class SessionController {
     private sessionId: string;
     private userId: number;
-    private userData: WebAppUser;
     private platform: string;
     private webAppStartParam: string;
     private userLocale: string;
+    private isPremium: boolean;
 
     private appModule: App;
 
@@ -27,20 +27,9 @@ export class SessionController {
             throwError(Errors.USER_DATA_IS_NOT_PROVIDED);
         }
 
-        // Create secure hashe of user ID to avoid PII
+        // Create secure hash of user ID to avoid PII
         this.userId = await sha256number(user.id);
-        this.userData = {
-            is_premium: user.isPremium,
-            is_bot: user.isBot,
-            language_code: user.languageCode,
-            photo_url: user.photoUrl,
-            id: this.userId,
-            // Create secure hash of username to avoid PII
-            username: await sha256hex(user.username),
-            // Lets Not provide names to avoid PII
-            first_name: 'Anonymous',
-            last_name: '',
-        };
+        this.isPremium = Boolean(user.isPremium);
         this.userLocale = user.languageCode;
         this.webAppStartParam = initData.startParam;
         this.platform = lp.platform;
@@ -67,14 +56,8 @@ export class SessionController {
         return this.userLocale;
     }
 
-    public getUserData() {
-        return this.userData;
-    }
-
     public getUserIsPremium() {
-        const userData = this.getUserData();
-
-        return Boolean(userData?.is_premium);
+        return this.isPremium;
     }
 
     public assembleEventSession() {
