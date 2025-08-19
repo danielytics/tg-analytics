@@ -10,7 +10,7 @@ Through these changes, this fork aims to be a safer and more trustworthy alterna
 
 **Current status:**
 
-1. All PII is hashed using SHA-256 (although in some cases truncated to fit into a javascript number)
+1. All PII is hashed using SHA-256 (although truncated to fit into a javascript number)
 2. WASM is still being loaded from untrusted source
 3. Only configured events are collected -- however it does the check quite late, for now. An improved future version will avoid setting up listeners for data that won't be collected.
 
