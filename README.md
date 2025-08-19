@@ -26,7 +26,7 @@ It is recommended you build it from source including building and self-hosting t
 To ensure that all events are collected correctly, you must initialize the SDK before the application starts rendering. For example, in react applications, before calling the render() function
 
 ```javascript
-import telegramAnalytics, { Events } from '@telegram-apps/analytics';
+import telegramAnalytics, { Events } from '@danielytics/analytics';
 
 telegramAnalytics.init({
     token: 'YOUR_TOKEN', // SDK Auth token received via @DataChief_bot
